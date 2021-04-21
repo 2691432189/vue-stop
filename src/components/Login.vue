@@ -25,7 +25,7 @@
         <!-- 密码 -->
         <el-form-item prop="password">
           <el-input
-            placeholder="请输入账号"
+            placeholder="请输入密码"
             prefix-icon="iconfont icon-3702mima"
             v-model="loginForm.password"
             show-password

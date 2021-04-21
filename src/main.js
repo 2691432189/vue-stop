@@ -11,6 +11,11 @@ import './assets/css/global.css'
 import axios from 'axios'
 axios.defaults.baseURL = 'http://127.0.0.1:8888/api/private/v1/'
 Vue.prototype.$http = axios
+// 请求拦截向请求头中添加token验证信息
+axios.interceptors.request.use(fig => {
+  fig.headers.Authorization = window.sessionStorage.getItem('token')
+  return fig
+})
 
 Vue.config.productionTip = false
 
