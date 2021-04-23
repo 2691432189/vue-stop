@@ -1,15 +1,13 @@
 <template>
   <div>
     <!-- 面包屑导航 -->
-    <div class="breadCrumbs">
-      <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/home' }">
-          首页
-        </el-breadcrumb-item>
-        <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-        <el-breadcrumb-item> 用户列表</el-breadcrumb-item>
-      </el-breadcrumb>
-    </div>
+    <el-breadcrumb separator-class="el-icon-arrow-right">
+      <el-breadcrumb-item :to="{ path: '/home' }">
+        首页
+      </el-breadcrumb-item>
+      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+      <el-breadcrumb-item> 用户列表</el-breadcrumb-item>
+    </el-breadcrumb>
     <!-- 面包屑导航 -->
     <!-- 卡片 -->
     <el-card class="box-card">
@@ -107,7 +105,7 @@
               <el-button
                 type="warning"
                 icon="el-icon-star-off"
-                @click="1"
+                @click="setRole(scope.row)"
               />
             </el-tooltip>
           </template>
@@ -164,7 +162,7 @@
           <el-form-item prop="email">
             <el-input
               placeholder="请输入邮箱"
-              prefix-icon="iconfont icon-3702mima"
+              prefix-icon="el-icon-s-promotion"
               v-model="addUserData.email"
             />
           </el-form-item>
@@ -173,7 +171,7 @@
           <el-form-item prop="mobile">
             <el-input
               placeholder="请输入电话号"
-              prefix-icon="iconfont icon-3702mima"
+              prefix-icon="el-icon-phone"
               v-model="addUserData.mobile"
             />
           </el-form-item>
@@ -221,7 +219,7 @@
           <el-form-item prop="email">
             <el-input
               placeholder="请输入邮箱"
-              prefix-icon="iconfont icon-3702mima"
+              prefix-icon="el-icon-s-promotion"
               v-model="usersModifyObj.email"
             />
           </el-form-item>
@@ -230,7 +228,7 @@
           <el-form-item prop="mobile">
             <el-input
               placeholder="请输入电话号"
-              prefix-icon="iconfont icon-3702mima"
+              prefix-icon="el-icon-phone"
               v-model="usersModifyObj.mobile"
             />
           </el-form-item>
@@ -250,6 +248,42 @@
       </span>
     </el-dialog>
     <!-- 修改用户弹出框 -->
+    <!-- 分配角色弹出框 -->
+    <el-dialog
+      title="分配角色"
+      :visible.sync="isRightsVisible"
+      width="40%"
+    >
+      <div>
+        <p>当前用户名 : {{ usersInfo.username }}</p>
+        <p>当前的角色 : {{ usersInfo.role_name }}</p>
+        <p>
+          分配新角色 :
+          <el-select
+            v-model="roleId"
+            placeholder="请选择"
+          >
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            />
+          </el-select>
+        </p>
+      </div>
+      <span
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button @click="isRightsVisible = false">取 消</el-button>
+        <el-button
+          type="primary"
+          @click="submitSetRole"
+        >确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 分配角色弹出框 -->
   </div>
 </template>
 
@@ -270,8 +304,12 @@ export default {
         email: '',
         mobile: ''
       },
-      // 用户列表对象
-      usersList: {},
+      // 用户列表数组
+      usersList: [],
+      // 即将被分配角色的用户信息
+      usersInfo: {},
+      // 即将被分配角色的用户被分配的角色id
+      roleId: '',
       // 控制添加用户弹出框是否显示
       dialogVisible: false,
       // 添加用户参数对象
@@ -281,6 +319,12 @@ export default {
         email: '',
         mobile: ''
       },
+      // 控制修改用户弹出框是否显示
+      modifyVisible: false,
+      // 控制分配角色弹出框是否显示
+      isRightsVisible: false,
+      // 角色列表
+      roleList: {},
       // 添加用户表单规则
       UserFormRules: {
         username: [
@@ -320,9 +364,7 @@ export default {
             trigger: 'blur'
           }
         ]
-      },
-      // 控制修改用户弹出框是否显示
-      modifyVisible: false
+      }
     }
   },
   methods: {
@@ -333,6 +375,7 @@ export default {
       })
       if (status !== 200) return this.$message.error('获取用户列表失败')
       this.usersList = usersList.data
+      console.log(usersList.data)
     },
     // 被修改后的修改用户信息
     async usersInfoModify (id) {
@@ -382,7 +425,7 @@ export default {
     async addUser () {
       this.$refs.addUserFormRules.validate(async (valid) => {
         if (valid) {
-          const { data: res } = await this.$http.post('users', this.addUserData)
+          const { data: res } = await this.$http.post('users', this.addUserObj)
           if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
           this.$message({
             message: res.meta.msg,
@@ -414,6 +457,28 @@ export default {
           this.getUsersList()
         }
       })
+    },
+    // 分配角色
+    async setRole (role) {
+      this.usersInfo = role
+      this.isRightsVisible = true
+      const { data: res } = await this.$http.get('roles')
+      this.roleList = res.data
+    },
+    // 提交用户被分配的角色
+    async submitSetRole () {
+      const { data: res } = await this.$http.put('users/' + this.usersInfo.id + '/role', {
+        rid: this.roleId
+      })
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.$message({
+        message: res.meta.msg,
+        type: 'success'
+      })
+      this.isRightsVisible = false
+      this.usersInfo = {}
+      this.roleId = ''
+      this.getUsersList()
     }
   },
   // 生命钩子函数
