@@ -375,7 +375,6 @@ export default {
       })
       if (status !== 200) return this.$message.error('获取用户列表失败')
       this.usersList = usersList.data
-      console.log(usersList.data)
     },
     // 被修改后的修改用户信息
     async usersInfoModify (id) {
