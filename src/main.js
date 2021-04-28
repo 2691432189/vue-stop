@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import './plugins/element.js'
 import './assets/fonts/iconfont.css'
+import ZkTable from 'vue-table-with-tree-grid'
 
 // 引入全局样式
 import './assets/css/global.css'
@@ -16,6 +17,9 @@ axios.interceptors.request.use(fig => {
   fig.headers.Authorization = window.sessionStorage.getItem('token')
   return fig
 })
+
+// 引入vue-table-with-tree-grid表格插件
+Vue.component('table-tree', ZkTable)
 
 Vue.config.productionTip = false
 
