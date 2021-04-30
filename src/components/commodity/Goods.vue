@@ -6,7 +6,7 @@
         首页
       </el-breadcrumb-item>
       <el-breadcrumb-item>商品管理</el-breadcrumb-item>
-      <el-breadcrumb-item> 商品分类</el-breadcrumb-item>
+      <el-breadcrumb-item> 商品列表</el-breadcrumb-item>
     </el-breadcrumb>
     <!-- 面包屑导航 -->
     <!-- 卡片 -->
@@ -17,7 +17,7 @@
           <!-- 添加分类按钮 -->
           <el-button
             type="primary"
-            @click="showAddGoods"
+            @click="showAddCate"
           >
             添加分类
           </el-button>
@@ -77,14 +77,14 @@
               <el-button
                 type="primary"
                 size="mini"
-                @click="showModifyGoods(scope.row)"
+                @click="showModifyCate(scope.row)"
               >
                 编辑
               </el-button>
               <el-button
                 type="danger"
                 size="mini"
-                @click="removeGoods(scope.row)"
+                @click="removeCate(scope.row)"
               >
                 删除
               </el-button>
@@ -112,19 +112,19 @@
     <!-- 添加分类弹出框 -->
     <el-dialog
       title="添加分类"
-      :visible.sync="isAddGoods"
+      :visible.sync="isAddCate"
       width="40%"
     >
       <span>
         <!-- 添加分类表单 -->
         <el-form
-          :model="addGoodsFormObj"
-          :rules="addGoodsFormRules"
-          ref="addGoodsForm"
+          :model="addCateFormObj"
+          :rules="addCateFormRules"
+          ref="addCateForm"
         >
           <el-form-item prop="cat_name">
             <el-input
-              v-model="addGoodsFormObj.cat_name"
+              v-model="addCateFormObj.cat_name"
               placeholder="请输入分类名称"
             />
           </el-form-item>
@@ -132,7 +132,7 @@
             <el-cascader
               :options="cateList_two"
               clearable
-              v-model="addGoodsFormObj.cat_pid"
+              v-model="addCateFormObj.cat_pid"
               :props="props"
               change-on-select
               placeholder="请选择分类级别"
@@ -145,10 +145,10 @@
         slot="footer"
         class="dialog-footer"
       >
-        <el-button @click="isAddGoods = false">取 消</el-button>
+        <el-button @click="isAddCate = false">取 消</el-button>
         <el-button
           type="primary"
-          @click="addGoods"
+          @click="addCate"
         >确 定</el-button>
       </span>
     </el-dialog>
@@ -156,18 +156,18 @@
     <!-- 修改分类弹出框 -->
     <el-dialog
       title="修改分类"
-      :visible.sync="ismodifyGoods"
+      :visible.sync="ismodifyCate"
       width="40%"
     >
       <!-- 添加分类表单 -->
       <el-form
-        :model="addGoodsFormObj"
-        :rules="addGoodsFormRules"
-        ref="addGoodsForm"
+        :model="addCateFormObj"
+        :rules="addCateFormRules"
+        ref="addCateForm"
       >
         <el-form-item prop="cat_name">
           <el-input
-            v-model="modifyGoodsFormObj.cat_name"
+            v-model="modifyCateFormObj.cat_name"
             placeholder="请输入分类名称"
           />
         </el-form-item>
@@ -177,10 +177,10 @@
         slot="footer"
         class="dialog-footer"
       >
-        <el-button @click="ismodifyGoods = false">取 消</el-button>
+        <el-button @click="ismodifyCate = false">取 消</el-button>
         <el-button
           type="primary"
-          @click="modifyGoods"
+          @click="modifyCate"
         >确 定</el-button>
       </span>
     </el-dialog>
@@ -226,21 +226,21 @@ export default {
         }
       ],
       // 是否显示添加分类对话框
-      isAddGoods: false,
+      isAddCate: false,
       // 添加分类表单数据对象
-      addGoodsFormObj: {
+      addCateFormObj: {
         cat_pid: [], // 分类父 ID
         cat_name: '' // 分类名称
       },
       // 是否显示修改分类对话框
-      ismodifyGoods: false,
+      ismodifyCate: false,
       // 修改分类表单数据对象
-      modifyGoodsFormObj: {
+      modifyCateFormObj: {
         cat_id: '', // 分类 ID
         cat_name: '' // 分类名称
       },
       // 表单验证对象
-      addGoodsFormRules: {
+      addCateFormRules: {
         cat_name: [
           { required: true, message: '请输入分类名称', trigger: 'blur' }
         ]
@@ -271,8 +271,8 @@ export default {
       this.getCateList()
     },
     // 显示添加商品分类对话框方法
-    async showAddGoods () {
-      this.isAddGoods = true
+    async showAddCate () {
+      this.isAddCate = true
       const { data: res } = await this.$http.get('categories', {
         params: {
           type: 2
@@ -281,52 +281,52 @@ export default {
       this.cateList_two = res.data
     },
     // 提交添加商品分类方法
-    addGoods () {
-      this.$refs.addGoodsForm.validate(async data => {
+    addCate () {
+      this.$refs.addCateForm.validate(async data => {
         if (data) {
           const { data: res } = await this.$http.post('categories', {
-            cat_pid: this.addGoodsFormObj.cat_pid[this.addGoodsFormObj.cat_pid.length - 1] || 0, // 分类父 ID
-            cat_name: this.addGoodsFormObj.cat_name, // 分类名称
-            cat_level: this.addGoodsFormObj.cat_pid.length // 分类层级
+            cat_pid: this.addCateFormObj.cat_pid[this.addCateFormObj.cat_pid.length - 1] || 0, // 分类父 ID
+            cat_name: this.addCateFormObj.cat_name, // 分类名称
+            cat_level: this.addCateFormObj.cat_pid.length // 分类层级
           })
           if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
           this.$message({
             type: 'success',
             message: '添加成功'
           })
-          this.isAddGoods = false
+          this.isAddCate = false
           this.getCateList()
         }
       })
     },
     // 显示编辑商品分类对话框方法
-    async showModifyGoods (goods) {
-      const { data: res } = await this.$http.get('categories/' + goods.cat_id)
-      this.modifyGoodsFormObj.cat_id = res.data.cat_id
-      this.modifyGoodsFormObj.cat_name = res.data.cat_name
-      this.ismodifyGoods = true
+    async showModifyCate (Cate) {
+      const { data: res } = await this.$http.get('categories/' + Cate.cat_id)
+      this.modifyCateFormObj.cat_id = res.data.cat_id
+      this.modifyCateFormObj.cat_name = res.data.cat_name
+      this.ismodifyCate = true
     },
     // 提交编辑商品分类方法
-    async  modifyGoods () {
-      const { data: res } = await this.$http.put('categories/' + this.modifyGoodsFormObj.cat_id, {
-        cat_name: this.modifyGoodsFormObj.cat_name
+    async  modifyCate () {
+      const { data: res } = await this.$http.put('categories/' + this.modifyCateFormObj.cat_id, {
+        cat_name: this.modifyCateFormObj.cat_name
       })
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.$message({
         type: 'success',
         message: '编辑成功'
       })
-      this.ismodifyGoods = false
+      this.ismodifyCate = false
       this.getCateList()
     },
     // 删除商品分类方法
-    async removeGoods (goods) {
+    async removeCate (Cate) {
       this.$confirm('此操作将永久删除该分类, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        const { data: res } = await this.$http.delete('categories/' + goods.cat_id)
+        const { data: res } = await this.$http.delete('categories/' + Cate.cat_id)
         if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
         this.getCateList()
         this.$message({
