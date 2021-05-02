@@ -11,6 +11,7 @@ import Params from '../components/commodity/Params.vue'
 import Categories from '../components/commodity/Categories.vue'
 import Orders from '../components/board/Orders.vue'
 import Reports from '../components/Statistics/Reports.vue'
+import Add from '../components/commodity/Add.vue'
 Vue.use(VueRouter)
 
 // 路由规则
@@ -30,7 +31,8 @@ const routes = [
       { path: '/params', component: Params },
       { path: '/categories', component: Categories },
       { path: '/orders', component: Orders },
-      { path: '/reports', component: Reports }
+      { path: '/reports', component: Reports },
+      { path: '/add', component: Add }
     ]
   }
 ]
