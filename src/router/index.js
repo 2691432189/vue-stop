@@ -12,6 +12,7 @@ import Categories from '../components/commodity/Categories.vue'
 import Orders from '../components/board/Orders.vue'
 import Reports from '../components/Statistics/Reports.vue'
 import Add from '../components/commodity/Add.vue'
+import Modify from '../components/commodity/Modify.vue'
 Vue.use(VueRouter)
 
 // 路由规则
@@ -32,7 +33,8 @@ const routes = [
       { path: '/categories', component: Categories },
       { path: '/orders', component: Orders },
       { path: '/reports', component: Reports },
-      { path: '/add', component: Add }
+      { path: '/add', component: Add },
+      { path: '/modify/:goodsId', component: Modify, props: true }
     ]
   }
 ]

@@ -6,14 +6,14 @@
         首页
       </el-breadcrumb-item>
       <el-breadcrumb-item>商品管理</el-breadcrumb-item>
-      <el-breadcrumb-item> 添加商品</el-breadcrumb-item>
+      <el-breadcrumb-item> 修改商品</el-breadcrumb-item>
     </el-breadcrumb>
     <!-- 面包屑导航 -->
     <!-- 卡片 -->
     <el-card class="box-card">
       <!-- 提示信息 -->
       <el-alert
-        title="添加商品信息"
+        title="修改商品信息"
         type="info"
         center
         :closable="false"
@@ -34,7 +34,7 @@
         <el-step title="完成" />
       </el-steps>
       <!-- 步骤条 -->
-      <!-- 添加商品表单 -->
+      <!-- 修改商品表单 -->
       <el-form
         :model="addGoodsForm"
         :rules="addGoodsFormRules"
@@ -102,7 +102,6 @@
                 :props="props"
                 placeholder="请选择分类级别"
                 v-model="addGoodsForm.goods_cat"
-                @change="cascaderChange"
               />
               <!-- 级联选择器 -->
             </el-form-item>
@@ -155,6 +154,8 @@
               :on-success="onSuccess"
               list-type="picture"
               :headers="headers"
+              :file-list="fileList"
+              ref="uploadRef"
             >
               <el-button
                 size="small"
@@ -175,19 +176,19 @@
               v-model="addGoodsForm.goods_introduce"
             />
             <!-- 富文本编辑器 -->
-            <!-- 添加商品按钮 -->
+            <!-- 修改商品按钮 -->
             <el-button
               type="primary"
               @click="addGoods"
             >
-              添加商品
+              修改商品
             </el-button>
-            <!-- 添加商品按钮 -->
+            <!-- 修改商品按钮 -->
           </el-tab-pane>
         </el-tabs>
       <!-- abs 标签页 -->
       </el-form>
-      <!-- 添加商品表单 -->
+      <!-- 修改商品表单 -->
     </el-card>
     <!-- 卡片 -->
     <!-- 图片预览弹出框 -->
@@ -207,11 +208,17 @@
 <script>
 import _ from 'lodash'
 export default {
+  props: {
+    goodsId: {
+      type: String, // 类型
+      default: null // 默认值
+    }
+  },
   data () {
     return {
       // 步骤条-abs标签页联动
       index: 0,
-      // 添加商品表单
+      // 修改商品表单
       addGoodsForm: {
         goods_name: '', // 商品名称
         goods_cat: [], //  以为','分割的分类列表
@@ -222,7 +229,7 @@ export default {
         pics: [], // 上传的图片临时路径（对象）
         attrs: [] // 商品的参数（数组），包含 `动态参数` 和 `静态属性`
       },
-      // 添加商品表单规则
+      // 修改商品表单规则
       addGoodsFormRules: {
         goods_name: [
           { required: true, message: '请输入商品名称', trigger: 'blur' }
@@ -266,11 +273,48 @@ export default {
       previe: {
         previewUrl: '', // 图片地址
         dialogTableVisible: false // 图片预览对话框
-      }
+      },
+      // 上传的文件列表
+      fileList: []
 
     }
   },
   methods: {
+    // 获取商品信息方法
+    async getGoodsInfo () {
+      const { data: res } = await this.$http.get(`goods/${this.goodsId}`)
+      if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
+      this.addGoodsForm.goods_name = res.data.goods_name
+      this.addGoodsForm.goods_price = res.data.goods_price
+      this.addGoodsForm.goods_number = res.data.goods_number
+      this.addGoodsForm.goods_weight = res.data.goods_weight
+      this.addGoodsForm.goods_introduce = res.data.goods_introduce
+      this.addGoodsForm.goods_cat = res.data.goods_cat.split(',').map(Number)
+      res.data.pics.forEach(item => {
+        const path = { name: item.pics_big_url, url: item.pics_big_url }
+        this.fileList.push(path)
+      })
+      res.data.attrs.forEach(item => {
+        if (item.attr_sel === 'only') {
+          this.onlyList.push({
+            attr_name: item.attr_name,
+            attr_sel: item.attr_sel,
+            attr_vals: item.attr_value,
+            attr_id: item.attr_id,
+            attr_write: item.attr_write
+          })
+        } else if (item.attr_sel === 'many') {
+          const many = {
+            attr_name: item.attr_name,
+            attr_sel: item.attr_sel,
+            attr_vals: item.attr_value !== '' ? item.attr_value.split(' ') : [],
+            attr_id: item.attr_id,
+            attr_write: item.attr_write
+          }
+          this.manyList.push(many)
+        }
+      })
+    },
     // 获取分类列表方法
     async getCateList () {
       const { data: res } = await this.$http.get('categories')
@@ -314,6 +358,7 @@ export default {
         return element.pic === file.response.data.tmp_path
       })
       this.addGoodsForm.pics.splice(index, 1)
+      this.$refs.uploadRef.submit()
     },
     // 处理图片预览
     handlePreview (file) {
@@ -325,7 +370,7 @@ export default {
       const path = { pic: response.data.tmp_path }
       this.addGoodsForm.pics.push(path)
     },
-    // 添加商品方法
+    // 修改商品方法
     addGoods () {
       this.$refs.addGoodsFormRef.validate(async bl => {
         if (!bl) return this.$message.error('请填写必要的商品参数')
@@ -335,7 +380,6 @@ export default {
         form.goods_cat = form.goods_cat.join(',')
         // 每次清空addGoodsForm.attrs
         this.addGoodsForm.attrs = []
-        // 处理manyList
         // 处理manyList
         this.manyList.forEach(item => {
           const newObj = { attr_id: item.attr_id, attr_value: item.attr_vals.join(' ') }
@@ -347,13 +391,13 @@ export default {
           this.addGoodsForm.attrs.push(newObj)
         })
         form.attrs = this.addGoodsForm.attrs
-        // 发起添加商品请求
-        const { data: res } = await this.$http.post('goods', form)
-        if (res.meta.status !== 201) return this.$message.error(res.meta.msg)
+        // 发起修改商品请求
+        const { data: res } = await this.$http.put(`goods/${this.goodsId}`, form)
+        if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
         this.$router.push('/categories')
         this.$message({
           type: 'success',
-          message: '添加商品成功!'
+          message: '修改商品成功!'
         })
       })
     }
@@ -373,6 +417,8 @@ export default {
   created () {
     // 调用获取分类列表方法
     this.getCateList()
+    // 调用获取商品信息方法
+    this.getGoodsInfo()
   }
 
 }

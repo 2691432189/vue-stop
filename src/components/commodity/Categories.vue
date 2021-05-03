@@ -81,6 +81,7 @@
             <el-button
               type="primary"
               size="mini"
+              @click="goModify(scope.row)"
             >
               修改
             </el-button>
@@ -173,6 +174,9 @@ export default {
     // 跳转至添加页
     goAdd () {
       this.$router.push('/add')
+    },
+    goModify (row) {
+      this.$router.push(`/modify/${row.goods_id}`)
     }
   },
   created () {
